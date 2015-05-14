@@ -159,6 +159,8 @@ class ApplicationServer {
 	private constructResult() {
 		def now = new Date()
 		def numSteps = getStepFromDate(now)
+		if (numSteps > maxSteps)
+			numSteps = maxSteps
 		def searchDate = getDateFromStep(numSteps)
 		def parsed = plainFormatter.format(searchDate)		
 		
@@ -193,11 +195,18 @@ class ApplicationServer {
 		}
 		
 		def timeToNext = (int) (getDateFromStep(numSteps + 1).time - now.time) / 1000
-		
+		if (timeToNext < 0 )
+			timeToNext = 0
+
+
+		def  sale_end_in = maxSteps - numSteps
+		if (maxSteps < numSteps)
+			sale_end_in = 0
+
 		return [ 	
-			"sale_period" :"${maxSteps}" ,
+			"sale_end_in" :"${sale_end_in}" ,
 			"sale_start_price" :"${startRate}",
-  			"current_day": "${numSteps}" ,
+  			"current_step": "${numSteps}" ,
   			"sold_yesterday":"${soldPrev}" ,
   			"sold_today"      :"${soldCur}" ,
   			"current_price"      :"${curPrice}" ,

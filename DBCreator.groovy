@@ -11,6 +11,8 @@ public class DBCreator {
         
         db.execute("create table if not exists crowdsale (saleDay integer, dateString string, sold integer,prevsold integer, jumped integer, steps integer, rate real)")
 
+        db.execute("create table if not exists crowdsalelist (amount integer,destination string ,dateString string)")
+
         db.execute("create unique index if not exists blocks1 on blocks(blockId)")       
 
         db.execute("create index if not exists fees1 on fees(blockId, txid)")
@@ -26,6 +28,8 @@ public class DBCreator {
 	row = db.firstRow("select name from sqlite_master where type='table' and name='payments'")
         assert row != null
         row = db.firstRow("select name from sqlite_master where type='table' and name='crowdsale'")
+        assert row != null
+        row = db.firstRow("select name from sqlite_master where type='table' and name='crowdsalelist'")
         assert row != null
 	}
 }

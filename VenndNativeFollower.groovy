@@ -14,6 +14,7 @@ public class VenndNativeFollower {
     static logger
     static log4j
     static bitcoinAPI
+    static paymentProcessor
     static satoshi = 100000000        
     static int inceptionBlock    
     static assetConfig
@@ -67,8 +68,9 @@ public class VenndNativeFollower {
         logger = new Logger()
         PropertyConfigurator.configure("VenndNativeFollower_log4j.properties")
         log4j = logger.getRootLogger()
-		
+
         bitcoinAPI = new BitcoinAPI(log4j)
+
 
         // Read in ini file
         def iniConfig = new ConfigSlurper().parse(new File("VenndNativeFollower.ini").toURL())        
@@ -86,6 +88,7 @@ public class VenndNativeFollower {
         db = Sql.newInstance("jdbc:sqlite:${databaseName}", "org.sqlite.JDBC")
         db.execute("PRAGMA busy_timeout = 1000")
 		DBCreator.createDB(db)
+        paymentProcessor = new PaymentProcessor(log4j,db);
     }
 
 
@@ -327,6 +330,9 @@ public class VenndNativeFollower {
             }
 
             sleep(sleepIntervalms)
+
+            paymentProcessor.work()
+
         }
 
 

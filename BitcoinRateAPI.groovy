@@ -35,7 +35,7 @@ class BitcoinRateAPI {
 	        // Init async http handler
 			def httpAsync = new AsyncHTTPBuilder(
                 poolSize : 10,
-                uri : it.value.siteUrl,,
+                uri : it.value.siteUrl,
                 contentType : JSON )			
 			httpBuilders.push(httpAsync)
 			fields.push(it.value.field)			
