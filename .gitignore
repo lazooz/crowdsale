@@ -1,0 +1,6 @@
+*.ini
+*.log
+*.log.*
+*.db
+*.xml
+logs/
