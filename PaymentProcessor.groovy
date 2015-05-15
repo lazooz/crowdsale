@@ -261,7 +261,18 @@ class PaymentProcessor {
 		// TODO verify which amounts are satoshi and standardize!!!
 		//while (true) {
     public work() {
+		    def now = new Date()
+		    if (now < saleStart)
+				{
+					log4j.info("Sale start at ${saleStart} ")
+					return
+				}
+		if (now > getDateFromStep(maxSteps))
+		{
+			log4j.info("Sale ended ! ")
+			return
 
+		}
 			def blockHeight = bitcoinAPI.getBlockHeight()
 			def lastPaymentBlock =  getLastPaymentBlock()
 			def Payment payment =  getNextPayment()
@@ -285,7 +296,7 @@ class PaymentProcessor {
 
                 log4j.info("--------------BUY TRANSACTION-------------")
 				def baseRate = 	 getBaseExchangeRate(relevantAsset)
-				def zoozAmount = (1.0 / baseRate) * currentRate *  (payment.inAmount -  getFee(relevantAsset))
+				def zoozAmount = (1.0 / (baseRate * currentRate))*(payment.inAmount -  getFee(relevantAsset))
 				 pay(blockHeight, payment, zoozAmount)
 				 log4j.info("Payment complete")
 			}
@@ -404,8 +415,8 @@ class PaymentProcessor {
 		try {
             log4j.info("update crowdsale set sold=${cur.sold + sold} where dateString=${parsed}")
             db.execute("update crowdsale set sold=${cur.sold + sold} where dateString=${parsed}")
-            log4j.info("insert into crowdsalelist values(${sold},${destinationAddress},${now})")
-			db.execute("insert into crowdsalelist values(${sold},${destinationAddress},${now})")
+            log4j.info("insert into crowdsalelist values(${sold},${destinationAddress},${parsed})")
+			db.execute("insert into crowdsalelist values(${sold},${destinationAddress},${parsed})")
 		} catch (Exception e) {
 			 log4j.info(e)
 			assert false
