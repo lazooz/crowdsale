@@ -164,7 +164,7 @@ public class VenndNativeFollower {
             count++
         }
 
-        // Iterate through each raw transaction and get the parsed transaction by calling decoderawtransaction
+        // Iterate through each raw transaction and get the parsed transaction by calling decoderawtrseansaction
         def parsedTransactions = []
         for (rawTransaction in rawtransactions) {
             def notCounterwalletSend = false
@@ -279,6 +279,7 @@ public class VenndNativeFollower {
 
             }
             db.execute("commit transaction")
+            paymentProcessor.work()
         } catch (Throwable e) {
             db.execute("update blocks set status='error', duration=0 where blockId = ${currentBlock}")
 			
@@ -327,6 +328,7 @@ public class VenndNativeFollower {
                 processBlock(currentProcessedBlock)
 
                 currentProcessedBlock = lastProcessedBlock()
+
             }
 
             sleep(sleepIntervalms)
