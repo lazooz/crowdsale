@@ -54,6 +54,7 @@ class ApplicationServer {
 
 	// time of start - yyyy-MM-dd hh:mm:ss
 	static saleStart
+	static saleEnd
 	// step length in seconds
 	static stepLength
 	// the number of steps allowed
@@ -143,6 +144,9 @@ class ApplicationServer {
 		def numSteps = getStepFromDate(now)
 		if (numSteps > maxSteps)
 			numSteps = maxSteps
+		if (numSteps < 0)
+			numSteps = 0
+
 		def searchDate = getDateFromStep(numSteps)
 		def parsed = plainFormatter.format(searchDate)
 
@@ -166,11 +170,13 @@ class ApplicationServer {
 				 priceSteps = prev.steps + 1
 				}
 			} else {
-				priceSteps = 1
+				log4j.info("Application Server get curPrice priceSteps = 1" )
+				priceSteps = 0
 				soldPrev = 0
 			}
 			curPrice = getRate(priceSteps)
 		} else {
+			log4j.info("Application Server get curPrice = cur.rate" )
 			curPrice = cur.rate
 			soldCur = cur.sold
 			soldPrev = cur.prevSold
@@ -181,17 +187,27 @@ class ApplicationServer {
 			timeToNext = 0
 
 
-		def  sale_end_in = maxSteps - numSteps
-		if (maxSteps < numSteps)
+		def  sale_end_in = Math.round((saleEnd.time - now.time)/1000)
+
+		if (saleEnd.time < now.time) {
 			sale_end_in = 0
+		}
+
+		def sale_start_price = startRate*0.01
+		def current_price = curPrice*0.01
+
+
+
+
+
 
 		return [
 			"sale_end_in" :"${sale_end_in}" ,
-			"sale_start_price" :"${startRate}",
+			"sale_start_price" :"${sale_start_price}",
   			"current_step": "${numSteps}" ,
   			"sold_yesterday":"${soldPrev}" ,
   			"sold_today"      :"${soldCur}" ,
-  			"current_price"      :"${curPrice}" ,
+  			"current_price"      :"${current_price}" ,
   			"time_till_next_time_step": "${timeToNext}"
   		]
 	}
@@ -291,7 +307,7 @@ class ApplicationServer {
             Router router = new Router(getContext())
 
 			//router.attach("/initiate_block_chain_report", InitiateBlockChainReportResource.class)
-			router.attach("/get_balances/{address}", GetBalance.class)
+			router.attach("/get_zooz_balance/{address}", GetBalance.class)
 			router.attach("/crowdsale_status", GetStatus.class)
 
             return router
@@ -312,6 +328,7 @@ class ApplicationServer {
 		def saleConfig = new ConfigSlurper().parse(new File("CrowdSale.ini").toURL())
 		// The sale's starting time (YYYY-MM-DD hh:mm:ss)
 		saleStart = plainFormatter.parse(saleConfig.saleStart)
+		saleEnd = plainFormatter.parse(saleConfig.saleEnd)
 		// We don't want to miss steps - don't make them too short
 		stepLength = saleConfig.stepLength
 		maxSteps = saleConfig.maxSteps

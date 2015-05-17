@@ -35,6 +35,9 @@ class PaymentProcessor {
 
 	// time of start - yyyy-MM-dd hh:mm:ss
 	static saleStart
+	// time of End - yyyy-MM-dd hh:mm:ss
+	static saleEnd
+
 	// step length in seconds
 	static stepLength
 	// the number of steps allowed
@@ -96,6 +99,7 @@ class PaymentProcessor {
 		def saleConfig = new ConfigSlurper().parse(new File("CrowdSale.ini").toURL())
 		// The sale's starting time (YYYY-MM-DD hh:mm:ss)
 		saleStart = plainFormatter.parse(saleConfig.saleStart)
+		saleEnd = plainFormatter.parse(saleConfig.saleEnd)
 		// We don't want to miss steps - don't make them too short
 		stepLength = saleConfig.stepLength
 		maxSteps = saleConfig.maxSteps
@@ -262,12 +266,12 @@ class PaymentProcessor {
 		//while (true) {
     public work() {
 		    def now = new Date()
-		    if (now < saleStart)
+		    if (now.time < saleStart.time)
 				{
 					log4j.info("Sale start at ${saleStart} ")
 					return
 				}
-		if (now > getDateFromStep(maxSteps))
+		if (now.time >saleEnd.time)
 		{
 			log4j.info("Sale ended ! ")
 			return
@@ -277,8 +281,11 @@ class PaymentProcessor {
 			def lastPaymentBlock =  getLastPaymentBlock()
 			def Payment payment =  getNextPayment()
 
-            currentBTCValueInUSD =  bitcoinRateAPI.getAveragedRate()
-            log4j.info("Updated exchange rate is: ${ currentBTCValueInUSD} USD for 1 BTC")
+		  //  while(true)
+			 {
+				currentBTCValueInUSD = bitcoinRateAPI.getAveragedRate()
+				log4j.info("Updated exchange rate is: ${currentBTCValueInUSD} USD for 1 BTC")
+			 }
 
 			assert lastPaymentBlock <= blockHeight
 
@@ -403,6 +410,12 @@ class PaymentProcessor {
 		}
 	}
 
+	private getCLRecord(address) {
+
+		def row = db.firstRow("select * from crowdsalelist where destination = ${address}")
+		return row
+	}
+
 	private updateSold(sold,destinationAddress) {
 		def now = new Date()
 		def numSteps = getStepFromDate(now)
@@ -415,10 +428,24 @@ class PaymentProcessor {
 		try {
             log4j.info("update crowdsale set sold=${cur.sold + sold} where dateString=${parsed}")
             db.execute("update crowdsale set sold=${cur.sold + sold} where dateString=${parsed}")
-            log4j.info("insert into crowdsalelist values(${sold},${destinationAddress},${parsed})")
-			db.execute("insert into crowdsalelist values(${sold},${destinationAddress},${parsed})")
-		} catch (Exception e) {
+        } catch (Exception e) {
 			 log4j.info(e)
+			assert false
+		}
+		cur = getCLRecord(destinationAddress)
+		try {
+			if (cur==null) {
+				log4j.info("insert into crowdsalelist values(${sold},${destinationAddress},${parsed})")
+				db.execute("insert into crowdsalelist values(${sold},${destinationAddress},${parsed})")
+			}
+			else
+			{
+				log4j.info("update crowdsalelist set sold=${cur.sold + sold},dateString=${parsed} where  destination = ${destinationAddress}")
+				db.execute("update crowdsalelist set sold=${cur.sold + sold},dateString=${parsed} where  destination = ${destinationAddress}")
+
+			}
+		} catch (Exception e) {
+			log4j.info(e)
 			assert false
 		}
 	}

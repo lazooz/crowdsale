@@ -313,6 +313,7 @@ public class VenndNativeFollower {
             def currentProcessedBlock = lastProcessedBlock()
 
             // If the current block is less than the last block we've seen then add it to the blocks db
+            log4j.info("info  " + lastBlock()+ " "+blockHeight)
             while (lastBlock() < blockHeight) {
                 currentBlock++
 
@@ -320,7 +321,7 @@ public class VenndNativeFollower {
 
                 currentBlock = lastBlock() // this value should stay the same
             }
-
+            log4j.info("currentBlock  " + currentBlock+ "lastProcessedBlock() "+lastProcessedBlock())
             // Check if we can process a block
             while (lastProcessedBlock() < currentBlock - confirmationsRequired) {
                 currentProcessedBlock++

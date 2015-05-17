@@ -33,10 +33,12 @@ class BitcoinRateAPI {
 		
 		iniConfig.sites.each { it -> 
 	        // Init async http handler
+
 			def httpAsync = new AsyncHTTPBuilder(
                 poolSize : 10,
                 uri : it.value.siteUrl,
-                contentType : JSON )			
+                contentType : JSON )
+
 			httpBuilders.push(httpAsync)
 			fields.push(it.value.field)			
 		}
@@ -45,11 +47,14 @@ class BitcoinRateAPI {
 	public getAveragedRate() { 
 		def numResults = 0.0
 		def total = 0.0
-		for (def i = 0; i < httpBuilders.size(); i++) { 
+        /*TODO: Check why it crash when using the second api intensively -https://api.bitcoinaverage.com/ticker/global/USD/ */
+		for (def i = 0; i < 1/*httpBuilders.size()*/; i++) {
 			def result = getQueryResult(httpBuilders[i])
 			def fieldList = fields[i]			
 			for (field in fieldList) {
-				if (result == null) continue
+				if (result == null) {
+					continue
+				}
 				result = result[field]				
 			}						
 			numResults += 1
