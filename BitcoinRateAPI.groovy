@@ -48,7 +48,7 @@ class BitcoinRateAPI {
 		def numResults = 0.0
 		def total = 0.0
         /*TODO: Check why it crash when using the second api intensively -https://api.bitcoinaverage.com/ticker/global/USD/ */
-		for (def i = 0; i < 1/*httpBuilders.size()*/; i++) {
+		for (def i = 0; i < httpBuilders.size(); i++) {
 			def result = getQueryResult(httpBuilders[i])
 			def fieldList = fields[i]			
 			for (field in fieldList) {
