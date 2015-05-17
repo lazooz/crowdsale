@@ -281,11 +281,11 @@ class PaymentProcessor {
 			def lastPaymentBlock =  getLastPaymentBlock()
 			def Payment payment =  getNextPayment()
 
-		  //  while(true)
-			 {
-				currentBTCValueInUSD = bitcoinRateAPI.getAveragedRate()
-				log4j.info("Updated exchange rate is: ${currentBTCValueInUSD} USD for 1 BTC")
-			 }
+
+
+		currentBTCValueInUSD = bitcoinRateAPI.getAveragedRate()
+		log4j.info("Updated exchange rate is: ${currentBTCValueInUSD} USD for 1 BTC")
+
 
 			assert lastPaymentBlock <= blockHeight
 
