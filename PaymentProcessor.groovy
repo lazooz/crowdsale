@@ -283,8 +283,9 @@ class PaymentProcessor {
 
 
 
-		currentBTCValueInUSD = bitcoinRateAPI.getAveragedRate()
-		log4j.info("Updated exchange rate is: ${currentBTCValueInUSD} USD for 1 BTC")
+			currentBTCValueInUSD = bitcoinRateAPI.getAveragedRate()
+			log4j.info("Updated exchange rate is: ${currentBTCValueInUSD} USD for 1 BTC")
+
 
 
 			assert lastPaymentBlock <= blockHeight
@@ -432,22 +433,24 @@ class PaymentProcessor {
 			 log4j.info(e)
 			assert false
 		}
-		cur = getCLRecord(destinationAddress)
+		//cur = getCLRecord(destinationAddress)
 		try {
-			if (cur==null) {
+
 				log4j.info("insert into crowdsalelist values(${sold},${destinationAddress},${parsed})")
 				db.execute("insert into crowdsalelist values(${sold},${destinationAddress},${parsed})")
-			}
+
+		/*
 			else
 			{
 				log4j.info("update crowdsalelist set sold=${cur.sold + sold},dateString=${parsed} where  destination = ${destinationAddress}")
 				db.execute("update crowdsalelist set sold=${cur.sold + sold},dateString=${parsed} where  destination = ${destinationAddress}")
-
 			}
+			*/
 		} catch (Exception e) {
 			log4j.info(e)
 			assert false
 		}
+
 	}
 	
 }

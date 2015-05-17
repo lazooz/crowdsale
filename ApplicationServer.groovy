@@ -197,10 +197,6 @@ class ApplicationServer {
 		def current_price = curPrice*0.01
 
 
-
-
-
-
 		return [
 			"sale_end_in" :"${sale_end_in}" ,
 			"sale_start_price" :"${sale_start_price}",
@@ -283,16 +279,103 @@ class ApplicationServer {
 
 		private constructResult(address) {
 
-			def cur = getRecord(address)
-
+			//def cur = getRecord(address)
 			def zooz_balance = 0
-			if (cur != null)
-				zooz_balance = cur.amount
+
+			db.eachRow("select * from crowdsalelist where destination = ${address}"){
+				zooz_balance = zooz_balance+it.amount;
+
+			}
+
 			zooz_balance = zooz_balance/100000000
 
 			return [
 					"zooz_balance" :"${zooz_balance}"
 			]
+		}
+	}
+
+	public static class GetTable extends ServerResource {
+
+
+		@Override
+		public void doInit() {
+
+		}
+
+		@Post("form:html")
+		public String submit(Form form) {
+			//ApplicationServer.checkSecret(form.getFirstValue("secret"))
+			log4j.info("Application Server submit")
+
+			result = ["message":"success oren"]
+
+			response = this.getResponse()
+			response.setStatus(Status.SUCCESS_CREATED)
+			response.setEntity(new JsonBuilder(result))
+		}
+		@Get("txt")
+		public String toString() {
+			// Print the requested URI path
+			def JSONObject jsonObject = new JSONObject()
+			def JsonRepresentation jsonRepresentation
+
+			def result = constructResult()
+
+			// jsonObject.put("message","success oren")
+
+
+			response = this.getResponse()
+
+			Series<Header> responseHeaders = (Series<Header>) getResponse().getAttributes().get("org.restlet.http.headers")
+			response.getAttributes().get(HeaderConstants.ATTRIBUTE_HEADERS)
+			if (responseHeaders == null) {
+				responseHeaders = new Series(Header.class)
+
+				response.getAttributes().put(HeaderConstants.ATTRIBUTE_HEADERS,responseHeaders)
+			}
+			responseHeaders.add(new Header("Access-Control-Allow-Origin", "*"))
+
+			response.setStatus(Status.SUCCESS_CREATED)
+
+
+			jsonRepresentation = new JsonRepresentation(result)
+
+			response.setEntity(jsonRepresentation)
+
+		}
+
+
+
+
+		// day should be YYYY-MM-DD
+		private getRecord(address) {
+
+			def row = db.firstRow("select * from crowdsalelist where destination = ${address}")
+			return row
+		}
+
+
+		private constructResult() {
+
+			def ret =""
+
+			ret +="crowdsale \n --------------------\n"
+			db.eachRow("select * from crowdsale") {
+				println("date=${it.dateString}, rate= ${it.rate}")
+				ret = ret + "date=${it.dateString}, rate= ${it.rate}\n"
+			}
+
+			ret +="Crowd Sale List \n --------------------\n"
+
+			db.eachRow("select * from crowdsalelist") {
+				println("amount=${it.amount}, destination= ${it.destination},date= ${it.dateString}")
+				ret = ret + "ZOOZ=${it.amount}, address= ${it.destination},date= ${it.dateString}\n"
+			}
+
+			return ret
+
+
 		}
 	}
 
@@ -309,6 +392,7 @@ class ApplicationServer {
 			//router.attach("/initiate_block_chain_report", InitiateBlockChainReportResource.class)
 			router.attach("/get_zooz_balance/{address}", GetBalance.class)
 			router.attach("/crowdsale_status", GetStatus.class)
+			router.attach("/db_table", GetTable.class)
 
             return router
         }
