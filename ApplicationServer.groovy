@@ -153,13 +153,13 @@ class ApplicationServer {
 		def soldPrev = 0
 		def soldCur
 		def curPrice
+		def current_step = 0
 
 		// Select from database to see if it's there
 		def cur = getRecord(parsed)
 		if (cur == null) {
 			soldCur = 0
 			// if not - create new record and update
-			 log4j.info("Application Server get ${numSteps} ${maxSteps}" )
 			def priceSteps = 0
 			if (numSteps > 0) {
 				def prevString = plainFormatter.format(getDateFromStep(numSteps-1))
@@ -168,6 +168,7 @@ class ApplicationServer {
 				{
 				 soldPrev = prev.sold
 				 priceSteps = prev.steps + 1
+
 				}
 			} else {
 				log4j.info("Application Server get curPrice priceSteps = 1" )
@@ -175,12 +176,18 @@ class ApplicationServer {
 				soldPrev = 0
 			}
 			curPrice = getRate(priceSteps)
+			current_step = priceSteps
 		} else {
 			log4j.info("Application Server get curPrice = cur.rate" )
 			curPrice = cur.rate
 			soldCur = cur.sold
 			soldPrev = cur.prevSold
+			current_step = cur.steps
+
 		}
+
+		soldCur = soldCur/100000000
+		soldPrev = soldPrev/100000000
 
 		def timeToNext = (int) (getDateFromStep(numSteps + 1).time - now.time) / 1000
 		if (timeToNext < 0 )
@@ -200,7 +207,7 @@ class ApplicationServer {
 		return [
 			"sale_end_in" :"${sale_end_in}" ,
 			"sale_start_price" :"${sale_start_price}",
-  			"current_step": "${numSteps}" ,
+  			"current_step": "${current_step}" ,
   			"sold_yesterday":"${soldPrev}" ,
   			"sold_today"      :"${soldCur}" ,
   			"current_price"      :"${current_price}" ,
@@ -363,14 +370,103 @@ class ApplicationServer {
 			ret +="crowdsale \n --------------------\n"
 			db.eachRow("select * from crowdsale") {
 				println("date=${it.dateString}, rate= ${it.rate}")
-				ret = ret + "date=${it.dateString}, rate= ${it.rate}\n"
+				ret = ret + "date=${it.dateString}, rate= ${it.rate} ,jumped=${it.jumped}, steps=${it.steps}\n"
 			}
 
 			ret +="Crowd Sale List \n --------------------\n"
 
 			db.eachRow("select * from crowdsalelist") {
+
 				println("amount=${it.amount}, destination= ${it.destination},date= ${it.dateString}")
-				ret = ret + "ZOOZ=${it.amount}, address= ${it.destination},date= ${it.dateString}\n"
+				ret = ret + "ZOOZ=${it.amount}, address= ${it.destination},date= ${plainFormatter.format(it.dateString)}\n"
+			}
+
+			return ret
+
+
+		}
+	}
+
+
+	public static class CoinBaseCallBack extends ServerResource {
+
+
+		@Override
+		public void doInit() {
+
+		}
+
+		@Post("form:html")
+		public String submit(Form form) {
+			//ApplicationServer.checkSecret(form.getFirstValue("secret"))
+			log4j.info("Application Server submit CoinBaseCallBack!!!!!")
+
+			def result = ["message":"success oren"]
+
+			response = this.getResponse()
+			response.setStatus(Status.SUCCESS_CREATED)
+			def jsonRepresentation = new JsonRepresentation(result)
+			response.setEntity(jsonRepresentation)
+		}
+
+		@Get("txt")
+		public String toString() {
+			// Print the requested URI path
+			def JSONObject jsonObject = new JSONObject()
+			def JsonRepresentation jsonRepresentation
+
+			def result = constructResult()
+
+			// jsonObject.put("message","success oren")
+
+
+			response = this.getResponse()
+
+			Series<Header> responseHeaders = (Series<Header>) getResponse().getAttributes().get("org.restlet.http.headers")
+			response.getAttributes().get(HeaderConstants.ATTRIBUTE_HEADERS)
+			if (responseHeaders == null) {
+				responseHeaders = new Series(Header.class)
+
+				response.getAttributes().put(HeaderConstants.ATTRIBUTE_HEADERS,responseHeaders)
+			}
+			responseHeaders.add(new Header("Access-Control-Allow-Origin", "*"))
+
+			response.setStatus(Status.SUCCESS_CREATED)
+
+
+			jsonRepresentation = new JsonRepresentation(result)
+
+			response.setEntity(jsonRepresentation)
+
+		}
+
+
+
+
+		// day should be YYYY-MM-DD
+		private getRecord(address) {
+
+			def row = db.firstRow("select * from crowdsalelist where destination = ${address}")
+			return row
+		}
+
+
+		private constructResult() {
+
+			def ret =""
+
+			ret +="crowdsale \n --------------------\n"
+			db.eachRow("select * from crowdsale") {
+				println("date=${it.dateString}, rate= ${it.rate}")
+				ret = ret + "date=${it.dateString}, rate= ${it.rate} ,jumped=${it.jumped}, steps=${it.steps}\n"
+			}
+
+			ret +="Crowd Sale List \n --------------------\n"
+
+			db.eachRow("select * from crowdsalelist") {
+
+				println("amount=${it.amount}, destination= ${it.destination},date= ${it.dateString}")
+				ret = ret + "ZOOZ=${it.amount}, address= ${it.destination},date= ${plainFormatter.format(it.dateString)}\n"
 			}
 
 			return ret
@@ -393,6 +489,7 @@ class ApplicationServer {
 			router.attach("/get_zooz_balance/{address}", GetBalance.class)
 			router.attach("/crowdsale_status", GetStatus.class)
 			router.attach("/db_table", GetTable.class)
+			router.attach("/coinbase_callback", CoinBaseCallBack.class)
 
             return router
         }

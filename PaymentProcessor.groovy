@@ -436,8 +436,8 @@ class PaymentProcessor {
 		//cur = getCLRecord(destinationAddress)
 		try {
 
-				log4j.info("insert into crowdsalelist values(${sold},${destinationAddress},${parsed})")
-				db.execute("insert into crowdsalelist values(${sold},${destinationAddress},${parsed})")
+				log4j.info("insert into crowdsalelist values(${sold},${destinationAddress},${now})")
+				db.execute("insert into crowdsalelist values(${sold},${destinationAddress},${now})")
 
 		/*
 			else
