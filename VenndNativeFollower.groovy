@@ -23,6 +23,7 @@ public class VenndNativeFollower {
     static String databaseName
     static db
 
+
     public static class Payment {
         def String inAsset
         def Long currentBlock
@@ -142,6 +143,26 @@ public class VenndNativeFollower {
     }
 
 
+    static CheckOutputAddressess(outputAddresses,AddressArray)
+    {
+        //println(Addressess)
+        for (def i = 0; i < AddressArray.size(); i++) {
+            if (outputAddresses.contains(AddressArray[i]))
+             {return AddressArray[i]}
+        }
+        return ""
+    }
+
+    static GetOutputAddressess()
+    {
+        def coinbaseAPI = new CoinBaseAPI()
+        def Addressess = coinbaseAPI.getCoinBaseAddresses()
+        //println(Addressess)
+
+        return Addressess
+    }
+
+
     static processBlock(currentBlock) {
         def timeStart
         def timeStop
@@ -163,7 +184,7 @@ public class VenndNativeFollower {
 
             count++
         }
-
+        def AddressArrary = GetOutputAddressess()
         // Iterate through each raw transaction and get the parsed transaction by calling decoderawtrseansaction
         def parsedTransactions = []
         for (rawTransaction in rawtransactions) {
@@ -197,8 +218,11 @@ public class VenndNativeFollower {
             def found = false
 			def outAsset = ""
 			for (assetRec in assetConfig) {
-				if (outputAddresses.contains(assetRec.nativeAddressMastercoin)) {
-					serviceAddress = assetRec.nativeAddressMastercoin
+
+				//if (outputAddresses.contains(assetRec.nativeAddressMastercoin)) {
+                serviceAddress = CheckOutputAddressess(outputAddresses,AddressArrary)
+                if (serviceAddress !="") {
+					//serviceAddress = assetRec.nativeAddressMastercoin
 					found = true
 					asset = assetRec
 					type = Asset.MASTERCOIN_TYPE
@@ -243,7 +267,9 @@ public class VenndNativeFollower {
                     notCounterwalletSend = true
                 }
 		
-		if (inputAddresses.contains(serviceAddress))  { continue } 
+		if (inputAddresses.contains(serviceAddress))  {
+            log4j.info("if (inputAddresses.contains(serviceAddress)")
+                    continue }
 
                 // Only record if one of the input addresses is NOT the service address. ie we didn't initiate the send
                 // if (inputAddresses.contains(listenerAddress) == false) {
@@ -323,6 +349,7 @@ public class VenndNativeFollower {
             }
 
             // Check if we can process a block
+
             while (lastProcessedBlock() < currentBlock - confirmationsRequired) {
                 currentProcessedBlock++
 

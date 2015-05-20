@@ -11,7 +11,7 @@ public class DBCreator {
         
         db.execute("create table if not exists crowdsale (saleDay integer, dateString string, sold integer,prevsold integer, jumped integer, steps integer, rate real)")
 
-        db.execute("create table if not exists crowdsalelist (amount integer,destination string ,dateString string)")
+        db.execute("create table if not exists crowdsalelist (amount integer,destination string ,source string,dateString string)")
 
         db.execute("create unique index if not exists blocks1 on blocks(blockId)")       
 

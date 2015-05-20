@@ -185,9 +185,9 @@ class PaymentProcessor {
 	private findAssetConfig(Payment payment) {
 		// Better to check by asset type
 		for (assetRec in assetConfig) {
-			if (payment.sourceAddress == assetRec.nativeAddressCounterparty || payment.sourceAddress == assetRec.nativeAddressMastercoin || payment.sourceAddress == assetRec.counterpartyAddress || payment.sourceAddress == assetRec.mastercoinAddress) {
+			//if (payment.sourceAddress == assetRec.nativeAddressCounterparty || payment.sourceAddress == assetRec.nativeAddressMastercoin || payment.sourceAddress == assetRec.counterpartyAddress || payment.sourceAddress == assetRec.mastercoinAddress) {
 				return assetRec
-			}
+
 		}
 		return null
 	}
@@ -236,7 +236,7 @@ class PaymentProcessor {
 		bitcoinAPI.lockBitcoinWallet()
 		*/
 
-        updateSold(amount,destinationAddress)
+        updateSold(amount,destinationAddress,payment.sourceAddress)
         db.execute("update payments set status='complete', lastUpdatedBlockId = ${currentBlock} where blockId = ${blockIdSource} and sourceTxid = ${payment.txid}")
 
 		 log4j.info("Payment ${sourceAddress} -> ${destinationAddress} ${amount} ${asset} complete")
@@ -417,7 +417,7 @@ class PaymentProcessor {
 		return row
 	}
 
-	private updateSold(sold,destinationAddress) {
+	private updateSold(sold,destinationAddress,sourceAddress) {
 		def now = new Date()
 		def numSteps = getStepFromDate(now)
 		def searchDate = getDateFromStep(numSteps)
@@ -436,8 +436,8 @@ class PaymentProcessor {
 		//cur = getCLRecord(destinationAddress)
 		try {
 
-				log4j.info("insert into crowdsalelist values(${sold},${destinationAddress},${now})")
-				db.execute("insert into crowdsalelist values(${sold},${destinationAddress},${now})")
+				log4j.info("insert into crowdsalelist values(${sold},${destinationAddress},${sourceAddress},${now})")
+				db.execute("insert into crowdsalelist values(${sold},${destinationAddress},${sourceAddress},${now})")
 
 		/*
 			else
