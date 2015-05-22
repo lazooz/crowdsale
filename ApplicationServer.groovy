@@ -27,12 +27,21 @@ import org.restlet.engine.header.DispositionReader
 import org.restlet.engine.header.HeaderConstants
 import org.restlet.engine.header.Header
 import org.restlet.util.Series
+/*
+import org.restlet.Component
+import org.restlet.Server
+import org.restlet.data.Parameter
+import org.restlet.data.Protocol
+import org.restlet.util.Series
+*/
+
 
 @Grab(group='log4j', module='log4j', version='1.2.17')
 @Grab(group='org.xerial', module='sqlite-jdbc', version='3.7.2')
 
 @Grab(group='org.restlet.jse', module='org.restlet', version = '2.2.0')
 @Grab(group='org.restlet.jse', module='org.restlet.ext.json', version = '2.2.0')
+//@Grab(group='org.restlet.jse', module='org.restlet.ext.simple', version = '2.2.0')
 @Grab(group='org.restlet.jse', module='org.restlet.lib.org.json', version = '2.0') //org.restlet.jse:org.restlet.lib.org.json:2.0
 
 import org.apache.log4j.*
@@ -186,8 +195,8 @@ class ApplicationServer {
 
 		}
 
-		soldCur = soldCur/100000000
-		soldPrev = soldPrev/100000000
+		soldCur = soldCur/satoshi
+		soldPrev = soldPrev/satoshi
 
 		def timeToNext = (int) (getDateFromStep(numSteps + 1).time - now.time) / 1000
 		if (timeToNext < 0 )
@@ -203,6 +212,12 @@ class ApplicationServer {
 		def sale_start_price = startRate*0.01
 		def current_price = curPrice*0.01
 
+		def zooz_balance = 0;
+		db.eachRow("select * from crowdsalelist") {
+			zooz_balance = zooz_balance+it.amount
+		}
+		zooz_balance = zooz_balance/satoshi
+
 
 		return [
 			"sale_end_in" :"${sale_end_in}" ,
@@ -211,7 +226,8 @@ class ApplicationServer {
   			"sold_yesterday":"${soldPrev}" ,
   			"sold_today"      :"${soldCur}" ,
   			"current_price"      :"${current_price}" ,
-  			"time_till_next_time_step": "${timeToNext}"
+  			"time_till_next_time_step": "${timeToNext}",
+			"zooz_balance": "${zooz_balance}"
   		]
 	}
 	 }
@@ -294,7 +310,7 @@ class ApplicationServer {
 
 			}
 
-			zooz_balance = zooz_balance/100000000
+			zooz_balance = zooz_balance/satoshi
 
 			return [
 					"zooz_balance" :"${zooz_balance}"
@@ -377,13 +393,30 @@ class ApplicationServer {
 
 			db.eachRow("select * from crowdsalelist") {
 
-				println("amount=${it.amount}, destination= ${it.destination},date= ${it.dateString}")
-				ret = ret + "ZOOZ=${it.amount}, address= ${it.destination},date= ${plainFormatter.format(it.dateString)}\n"
+				println("amount=${it.amount}, from= ${it.destination},to= ${it.source},date= ${it.dateString}")
+				ret = ret + "ZOOZ=${it.amount}, address= ${it.destination},to= ${it.source},date= ${plainFormatter.format(it.dateString)}\n"
 			}
 
+			ret +="Total ZOOZ till now \n --------------------\n"
+
+			def zooz_balance = 0;
+			db.eachRow("select * from crowdsalelist") {
+				zooz_balance = zooz_balance+it.amount
+
+			}
+			ret = ret + "${zooz_balance}\n"
+
+			ret +="Payments \n --------------------\n"
+
+
+			db.eachRow("select * from payments") {
+				ret = ret + "blockId=${it.blockId}, sourceTxid= ${it.sourceTxid} ,sourceAddress=${it.sourceAddress}, inAssetType=${it.inAssetType}"
+				ret = ret + "inAmount=${it.inAmount}, destinationAddress= ${it.destinationAddress} ,outAsset=${it.outAsset}, outAssetType=${it.outAssetType}"
+				ret = ret + "outAmount=${it.outAmount}, status= ${it.status} ,lastUpdatedBlockId=${it.lastUpdatedBlockId}\n"
+			}
+
+
 			return ret
-
-
 		}
 	}
 
@@ -536,11 +569,24 @@ class ApplicationServer {
         // Create a new Component.
         Component component = new Component()
 
-        component.getServers().add(Protocol.HTTP, 8080)
+        Server server = component.getServers().add(Protocol.HTTP, 8080)
+		//Server server = component.getServers().add(Protocol.HTTPS, 8080)
+
 
         // Attach the sample application.
         component.getDefaultHost().attach("", serverApp)
 
+		//p.add("truststorePath","/home/ubuntu/crowdsale2/keystore1.jks");
+		//p.add("truststorePassword","123456");
+/*
+		Series<Parameter> parameters = server.getContext().getParameters();
+		//parameters.add("sslContextFactory", "org.restlet.ext.ssl.PkixSslContextFactory");
+// I have created self signed certificate. reference is attached with parameter
+		parameters.add("keystorePath","/home/ubuntu/crowdsale2/clientkeystore");
+		parameters.add("keystorePassword", "123456");
+		parameters.add("keyPassword", "123456");
+		parameters.add("keystoreType", "JKS");
+*/
         // Start the component.
         component.start()
     }
