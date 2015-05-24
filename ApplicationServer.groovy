@@ -569,7 +569,7 @@ class ApplicationServer {
         // Create a new Component.
         Component component = new Component()
 
-        Server server = component.getServers().add(Protocol.HTTP, 8080)
+		component.getServers().add(Protocol.HTTP, 8080)
 		//Server server = component.getServers().add(Protocol.HTTPS, 8080)
 
 

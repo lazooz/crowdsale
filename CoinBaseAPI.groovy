@@ -60,7 +60,10 @@ class CoinBaseAPI {
 			response.success = { resp, json ->
 				return json
 			}
-
+			response.failure = { resp ->
+				// Check returned status'
+				//assertResp(resp, expStatus);
+			}
 		}
 
 		assert result instanceof java.util.concurrent.Future
@@ -85,6 +88,8 @@ class CoinBaseAPI {
 
 		def result = getQueryResult(httpAsync)
 		def Addressess = []
+		if (result == null)
+			return Addressess;
 		//println "Address: ${result["addresses"]}"
 		//println "Address: ${result["addresses"].size()}"
 		for (def i = 0; i < result["addresses"].size(); i++)

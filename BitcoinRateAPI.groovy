@@ -14,16 +14,19 @@ class BitcoinRateAPI {
     private getQueryResult(httpAsync) {
         def result = httpAsync.request( GET, JSON) { req ->
 		
-            response.success = { resp, json ->				
+            response.success = { resp, json ->
                 return json
             }
+			response.failure = { resp ->
+				// Check returned status'
+				//assertResp(resp, expStatus);
+			}
         }
 
         assert result instanceof java.util.concurrent.Future
         while ( ! result.done ) {
             Thread.sleep(100)
         }
-		
         return result.get()
     }
 
@@ -50,6 +53,9 @@ class BitcoinRateAPI {
         /*TODO: Check why it crash when using the second api intensively -https://api.bitcoinaverage.com/ticker/global/USD/ */
 		for (def i = 0; i < httpBuilders.size(); i++) {
 			def result = getQueryResult(httpBuilders[i])
+			if (result == null) {
+				continue
+			}
 			def fieldList = fields[i]			
 			for (field in fieldList) {
 				if (result == null) {
@@ -60,7 +66,9 @@ class BitcoinRateAPI {
 			numResults += 1
 			total += result.toFloat()
 		}
-		return total / numResults
+		if (numResults>0)
+		  return total / numResults
+		return 0
 	}
 
     public BitcoinRateAPI() {
