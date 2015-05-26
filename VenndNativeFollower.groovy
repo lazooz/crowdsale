@@ -322,6 +322,42 @@ public class VenndNativeFollower {
     }
 
 
+    private static MainLoop()
+    {
+        // Begin following blocks
+        while (true) {
+            def blockHeight = bitcoinAPI.getBlockHeight()
+            def currentBlock = lastBlock()
+            def currentProcessedBlock = lastProcessedBlock()
+
+            // If the current block is less than the last block we've seen then add it to the blocks db
+
+            while (lastBlock() < blockHeight) {
+                currentBlock++
+
+                processSeenBlock(currentBlock)
+
+                currentBlock = lastBlock() // this value should stay the same
+            }
+
+            // Check if we can process a block
+            log4j.info("Current Block ---  ${currentBlock} ${currentProcessedBlock}")
+            while (lastProcessedBlock() < currentBlock - confirmationsRequired) {
+                currentProcessedBlock++
+                log4j.info("Current Block |||  ${currentBlock}")
+                processBlock(currentProcessedBlock)
+
+                currentProcessedBlock = lastProcessedBlock()
+
+            }
+
+            sleep(sleepIntervalms)
+
+            paymentProcessor.work()
+
+        }
+
+    }
     public static int main(String[] args) {
         def venndNativeFollower = new VenndNativeFollower()
 
@@ -331,7 +367,17 @@ public class VenndNativeFollower {
         log4j.info("native API daemon follower started")
         log4j.info("Last processed block: " + lastProcessedBlock())
         log4j.info("Last seen block: " + lastBlock())
+        try {
+            MainLoop();
+        } catch (RuntimeException e) {  // EDIT --- Should be Exception, RuntimeException
 
+            log4j.info("Exception caught: class of exception is " + e.getClass().getName());
+                throw e;
+
+            // log other exception...
+        }
+
+/*
         // Begin following blocks
         while (true) {
             def blockHeight = bitcoinAPI.getBlockHeight()
@@ -364,6 +410,7 @@ public class VenndNativeFollower {
             paymentProcessor.work()
 
         }
+        */
 
 
     } // end main

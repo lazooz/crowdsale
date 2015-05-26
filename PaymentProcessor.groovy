@@ -16,6 +16,7 @@ class PaymentProcessor {
 	static mastercoinAPI
 	static bitcoinAPI
 	static bitcoinRateAPI
+	static UpdateClientAPI
 	static String walletPassphrase
 	static int sleepIntervalms
 	static String databaseName
@@ -87,6 +88,7 @@ class PaymentProcessor {
 		mastercoinAPI = new MastercoinAPI( log4j)
 		bitcoinAPI = new BitcoinAPI(mastercoinAPI.getHttpAsync(), log4j)
 		bitcoinRateAPI = new BitcoinRateAPI()
+		UpdateClientAPI = new UpdateClient(log4j)
 
 		// Read in ini file
 		def iniConfig = new ConfigSlurper().parse(new File("PaymentProcessor.ini").toURL())
@@ -237,7 +239,9 @@ class PaymentProcessor {
 		*/
 
         updateSold(amount,destinationAddress,payment.sourceAddress)
-        db.execute("update payments set status='complete', lastUpdatedBlockId = ${currentBlock} where blockId = ${blockIdSource} and sourceTxid = ${payment.txid}")
+        db.execute("update payments set status='complete', lastUpdatedBlockId = ${currentBlock} where blockId = ${blockIdSource} and sourceTxid = ${payment.txid} and outAmount=${amount}")
+		UpdateClientAPI.sendUpdate(destinationAddress,payment.inAmount,payment.sourceAddress,amount)
+
 
 		 log4j.info("Payment ${sourceAddress} -> ${destinationAddress} ${amount} ${asset} complete")
 	}
@@ -305,6 +309,8 @@ class PaymentProcessor {
                 log4j.info("--------------BUY TRANSACTION-------------")
 				def baseRate = 	 getBaseExchangeRate(relevantAsset)
 				def zoozAmount = (1.0 / (baseRate * currentRate))*(payment.inAmount -  getFee(relevantAsset))
+				zoozAmount = Math.ceil(zoozAmount)
+
 				 pay(blockHeight, payment, zoozAmount)
 				 log4j.info("Payment complete")
 			}

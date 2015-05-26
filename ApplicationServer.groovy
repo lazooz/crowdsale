@@ -102,7 +102,7 @@ class ApplicationServer {
 
 	   // jsonObject.put("message","success oren")
 
-	    log4j.info("Application Server get")
+
 
 
 
@@ -180,14 +180,14 @@ class ApplicationServer {
 
 				}
 			} else {
-				log4j.info("Application Server get curPrice priceSteps = 1" )
+		//		log4j.info("Application Server get curPrice priceSteps = 1" )
 				priceSteps = 0
 				soldPrev = 0
 			}
 			curPrice = getRate(priceSteps)
 			current_step = priceSteps
 		} else {
-			log4j.info("Application Server get curPrice = cur.rate" )
+		//	log4j.info("Application Server get curPrice = cur.rate" )
 			curPrice = cur.rate
 			soldCur = cur.sold
 			soldPrev = cur.prevSold
@@ -410,8 +410,8 @@ class ApplicationServer {
 
 
 			db.eachRow("select * from payments") {
-				ret = ret + "blockId=${it.blockId}, sourceTxid= ${it.sourceTxid} ,sourceAddress=${it.sourceAddress}, inAssetType=${it.inAssetType}"
-				ret = ret + "inAmount=${it.inAmount}, destinationAddress= ${it.destinationAddress} ,outAsset=${it.outAsset}, outAssetType=${it.outAssetType}"
+				ret = ret + "blockId=${it.blockId}, sourceTxid= ${it.sourceTxid} ,sourceAddress=${it.sourceAddress}, inAssetType=${it.inAssetType} "
+				ret = ret + "inAmount=${it.inAmount}, destinationAddress= ${it.destinationAddress} ,outAsset=${it.outAsset}, outAssetType=${it.outAssetType} "
 				ret = ret + "outAmount=${it.outAmount}, status= ${it.status} ,lastUpdatedBlockId=${it.lastUpdatedBlockId}\n"
 			}
 
