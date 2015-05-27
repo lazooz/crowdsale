@@ -52,7 +52,7 @@ class ApplicationServer {
 
 	static myLogger
 	static log4j
-	static satoshi = 100000000
+	static satoshi = 1 /*100000000*/
 
 	static logger
 	static db

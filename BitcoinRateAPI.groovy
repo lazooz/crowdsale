@@ -17,10 +17,12 @@ class BitcoinRateAPI {
             response.success = { resp, json ->
                 return json
             }
+
 			response.failure = { resp ->
 				// Check returned status'
 				//assertResp(resp, expStatus);
 			}
+
         }
 
         assert result instanceof java.util.concurrent.Future

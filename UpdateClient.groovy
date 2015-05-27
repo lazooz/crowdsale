@@ -17,6 +17,10 @@ import groovyx.net.http.AsyncHTTPBuilder
 import groovyx.net.http.RESTClient
 import static groovyx.net.http.ContentType.JSON
 import static groovyx.net.http.Method.GET
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 
 @Grab(group='log4j', module='log4j', version='1.2.17')
 
@@ -51,17 +55,11 @@ class UpdateClient {
 	public init() {
 
 		serverAddress = "http://lazooz.org/wp2/inter/lazooz1.4/zooz_sale_interface/confirmation.php"
-
-	
 	}
-
-
-
 	private getQueryResult(httpAsync,query) {
-		def body =null
-		def url = serverAddress
+
 		def result = httpAsync.request( POST, HTML) { req ->
-			uri.query = query
+			body = query
 
 			response.success = { resp, json ->
 				return json
@@ -85,32 +83,21 @@ class UpdateClient {
 		def jsonBuilder = new groovy.json.JsonBuilder()
 
 		jsonBuilder(
-				BTCAddress :vBTCAddress,
-				BTCAmout:vBTCAmount,
+				BTCInAddress :vBTCAddress,
+				BTCAmout: vBTCAmount,
 				ZOOZAddress :vZOOZAddress,
 				ZOOZAmount :vZOOZAmout,
-				Time:vTime)
+				Time: vTime)
 
 		println(jsonBuilder)
-
-		def result = [ BTCAddress :vBTCAddress ,
-				BTCAmout  :vBTCAmount ,
-				ZOOZAddress :vZOOZAddress,
-				ZOOZAmount :vZOOZAmout ,
-				Time:vTime
-				]
-		println(result)
 
 		def httpAsync = new AsyncHTTPBuilder(
 				poolSize : 10,
 				uri : serverAddress,
 				contentType : HTML  ,
-
 		)
 
-
-
-		def res = getQueryResult(httpAsync,result)
+		def res = getQueryResult(httpAsync,jsonBuilder)
 		println (res)
 	}
 
@@ -132,8 +119,9 @@ class UpdateClient {
 		// Begin following blocks
 		
 		// TODO verify which amounts are satoshi and standardize!!!
+		// {"BTCInAddress":"1JCnJLqGmj8TY8A1HKtCxckQFWGFM5aHX2","BTCAmout":500000,"ZOOZAddress":"18MqJzJp7M7Hfqdv7F9PYxD7vLM3sSXDEF","ZOOZAmount":16660002666,"Time":"2015-05-27T08:49:49+0000"}
 
-		updateClient.sendUpdate("xxx",100,"yyy",1000,"now")
+		updateClient.sendUpdate("1JCnJLqGmj8TY8A1HKtCxckQFWGFM5aHX2",121,"18MqJzJp7M7Hfqdv7F9PYxD7vLM3sSXDEF",1000,"2015-05-27T08:49:49+0000")
 		sleep(10000)
 	}
 		

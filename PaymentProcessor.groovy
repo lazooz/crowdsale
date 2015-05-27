@@ -239,8 +239,9 @@ class PaymentProcessor {
 		*/
 
         updateSold(amount,destinationAddress,payment.sourceAddress)
-        db.execute("update payments set status='complete', lastUpdatedBlockId = ${currentBlock} where blockId = ${blockIdSource} and sourceTxid = ${payment.txid} and outAmount=${amount}")
-		UpdateClientAPI.sendUpdate(destinationAddress,payment.inAmount,payment.sourceAddress,amount)
+        db.execute("update payments set status='complete', lastUpdatedBlockId = ${currentBlock}, outAmount=${amount} where blockId = ${blockIdSource} and sourceTxid = ${payment.txid}")
+		def now = new Date()
+		UpdateClientAPI.sendUpdate(payment.sourceAddress ,payment.inAmount,destinationAddress,amount,now)
 
 
 		 log4j.info("Payment ${sourceAddress} -> ${destinationAddress} ${amount} ${asset} complete")
@@ -309,7 +310,7 @@ class PaymentProcessor {
                 log4j.info("--------------BUY TRANSACTION-------------")
 				def baseRate = 	 getBaseExchangeRate(relevantAsset)
 				def zoozAmount = (1.0 / (baseRate * currentRate))*(payment.inAmount -  getFee(relevantAsset))
-				zoozAmount = Math.ceil(zoozAmount)
+				zoozAmount = Math.ceil(zoozAmount/satoshi)
 
 				 pay(blockHeight, payment, zoozAmount)
 				 log4j.info("Payment complete")
@@ -399,7 +400,7 @@ class PaymentProcessor {
 			}
 		} else {
 			// if passed yesteday's sales just now, update rate and return
-			if (numSteps > 0 && numSteps <= maxSteps && cur.jumped == 0 && cur.sold > cur.prevsold) {
+			if (numSteps > 0 && numSteps <= maxSteps && cur.jumped == 0 && cur.sold > cur.prevsold ) {
 				def steps = cur.steps + 1
 				def rate = getRate(steps)
 				try {

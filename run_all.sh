@@ -1,4 +1,4 @@
 #!/bin/bash
 
-screen -L -d -m groovy VenndNativeFollower.groovy
-screen -L -d -m groovy ApplicationServer.groovy 
+nohup groovy VenndNativeFollower.groovy &
+nohup groovy ApplicationServer.groovy &
