@@ -184,6 +184,11 @@ public class VenndNativeFollower {
 
             count++
         }
+        timeStop = System.currentTimeMillis()
+        def duration_1 = (timeStop-timeStart)/1000
+
+        log4j.info("Block **** ${currentBlock}: processed in ${duration_1}s")
+
         def AddressArrary = GetOutputAddressess()
         // Iterate through each raw transaction and get the parsed transaction by calling decoderawtrseansaction
         def parsedTransactions = []
@@ -341,10 +346,10 @@ public class VenndNativeFollower {
             }
 
             // Check if we can process a block
-            log4j.info("Current Block ---  ${currentBlock} ${currentProcessedBlock}")
+         //   log4j.info("Current Block ---  ${currentBlock} ${currentProcessedBlock}")
             while (lastProcessedBlock() < currentBlock - confirmationsRequired) {
                 currentProcessedBlock++
-                log4j.info("Current Block |||  ${currentBlock}")
+           //     log4j.info("Current Block |||  ${currentBlock}")
                 processBlock(currentProcessedBlock)
 
                 currentProcessedBlock = lastProcessedBlock()

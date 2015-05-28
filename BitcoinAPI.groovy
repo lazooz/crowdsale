@@ -14,6 +14,7 @@ class BitcoinAPI {
     private groovyx.net.http.AsyncHTTPBuilder httpAsync
 	
 	static log4j
+    static rpcWaitTime = 10
 
     public getBlockHeight() {
         def result = httpAsync.request( POST, JSON) { req ->
@@ -29,7 +30,7 @@ class BitcoinAPI {
 
         assert result instanceof java.util.concurrent.Future
         while ( ! result.done ) {
-            Thread.sleep(100)
+            Thread.sleep(rpcWaitTime)
         }
 
         assert result.get() > 0
@@ -53,7 +54,7 @@ class BitcoinAPI {
 
         assert result instanceof java.util.concurrent.Future
         while ( ! result.done ) {
-            Thread.sleep(100)
+            Thread.sleep(rpcWaitTime)
         }
 
         return result.get()
@@ -74,7 +75,7 @@ class BitcoinAPI {
 
         assert result instanceof java.util.concurrent.Future
         while ( ! result.done ) {
-            Thread.sleep(100)
+            Thread.sleep(rpcWaitTime)
         }
 
         return result.get()
@@ -95,7 +96,7 @@ class BitcoinAPI {
 
         assert result instanceof java.util.concurrent.Future
         while ( ! result.done ) {
-            Thread.sleep(100)
+            Thread.sleep(rpcWaitTime)
         }
 
         return result.get()
@@ -116,7 +117,7 @@ class BitcoinAPI {
 
         assert result instanceof java.util.concurrent.Future
         while ( ! result.done ) {
-            Thread.sleep(100)
+            Thread.sleep(rpcWaitTime)
         }
 
         return result.get()
@@ -148,7 +149,7 @@ class BitcoinAPI {
 
             assert result instanceof java.util.concurrent.Future
             while (!result.done) {
-                Thread.sleep(100)
+                Thread.sleep(rpcWaitTime)
             }
 
             return result.get()
@@ -173,7 +174,7 @@ class BitcoinAPI {
 
         assert result instanceof java.util.concurrent.Future
         while ( ! result.done ) {
-            Thread.sleep(100)
+            Thread.sleep(rpcWaitTime)
         }
     }
 
@@ -191,7 +192,7 @@ class BitcoinAPI {
 
         assert result instanceof java.util.concurrent.Future
         while ( ! result.done ) {
-            Thread.sleep(100)
+            Thread.sleep(rpcWaitTime)
         }
 
         return result.get()
