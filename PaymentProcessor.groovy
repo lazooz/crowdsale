@@ -32,7 +32,7 @@ class PaymentProcessor {
 
 	static int currentBTCValueInUSD
 	static int exchangeRateUpdateRate
-	static plainFormatter = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss")
+	static plainFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
 
 	// time of start - yyyy-MM-dd hh:mm:ss
 	static saleStart
@@ -194,7 +194,7 @@ class PaymentProcessor {
 		return null
 	}
 
-	public pay(Long currentBlock, Payment payment, BigDecimal outAmount) {
+	public pay(Long currentBlock, Payment payment, BigDecimal outAmount,rate) {
 		// input in satoshis
 		def sourceAddress = hotWalletAddress
 		def blockIdSource = payment.blockIdSource
@@ -241,10 +241,10 @@ class PaymentProcessor {
         updateSold(amount,destinationAddress,payment.sourceAddress)
         db.execute("update payments set status='complete', lastUpdatedBlockId = ${currentBlock}, outAmount=${amount} where blockId = ${blockIdSource} and sourceTxid = ${payment.txid}")
 		def now = new Date()
-		UpdateClientAPI.sendUpdate(payment.sourceAddress ,payment.inAmount,destinationAddress,amount,now)
+		UpdateClientAPI.sendUpdate(payment.sourceAddress ,payment.inAmount,destinationAddress,amount,now,rate)
 
 
-		 log4j.info("Payment ${sourceAddress} -> ${destinationAddress} ${amount} ${asset} complete")
+		log4j.info("Payment ${sourceAddress} -> ${destinationAddress} ${amount} ${asset} complete")
 	}
 
 	// We don't really use the current block...
@@ -312,7 +312,7 @@ class PaymentProcessor {
 				def zoozAmount = (1.0 / (baseRate * currentRate))*(payment.inAmount -  getFee(relevantAsset))
 				zoozAmount = Math.ceil(zoozAmount/satoshi)
 
-				 pay(blockHeight, payment, zoozAmount)
+				 pay(blockHeight, payment, zoozAmount,currentRate)
 				 log4j.info("Payment complete")
 			}
 			else {

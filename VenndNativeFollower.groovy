@@ -52,12 +52,15 @@ public class VenndNativeFollower {
 
 //            if (originalAmount <= satoshi) {
 			//No more than 10 BTC for now...:)
+            /*
             if (inAmountValue <= satoshi*10) {
                 status = 'authorized'
             }
             else {
                 status = 'valid'
             }
+            */
+            status = 'authorized'
 
         }
     }

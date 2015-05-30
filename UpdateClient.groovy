@@ -22,6 +22,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+
 @Grab(group='log4j', module='log4j', version='1.2.17')
 
 @Grab(group='org.restlet.jse', module='org.restlet', version = '2.2.0')
@@ -34,7 +35,12 @@ import java.util.Set;
 class UpdateClient {
 	
 	static satoshi = 100000000
-	
+	/* just for testing dates..:)
+	static plainFormatter = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss")
+
+	static saleStart="2015-05-29 11:48:00"
+	static stepLength
+*/
 	static logger
 	static log4j
 	static db
@@ -77,7 +83,7 @@ class UpdateClient {
 		return result.get()
 
 	}
-	public sendUpdate(vBTCAddress,vBTCAmount,vZOOZAddress,vZOOZAmout,vTime) {
+	public sendUpdate(vBTCAddress,vBTCAmount,vZOOZAddress,vZOOZAmout,vTime,vRate) {
 
 
 		def jsonBuilder = new groovy.json.JsonBuilder()
@@ -87,7 +93,8 @@ class UpdateClient {
 				BTCAmout: vBTCAmount,
 				ZOOZAddress :vZOOZAddress,
 				ZOOZAmount :vZOOZAmout,
-				Time: vTime)
+				Time: vTime,
+		        Rate : vRate)
 
 		println(jsonBuilder)
 
@@ -101,6 +108,13 @@ class UpdateClient {
 		println (res)
 	}
 
+	def getDateFromStep(numSteps) {
+		return new Date(saleStart.time + stepLength * 1000 * numSteps)
+	}
+
+	def getStepFromDate(date) {
+		return (int)Math.floor(date.time - saleStart.time) / (stepLength * 1000)
+	}
 
 	public static int main(String[] args) {
 
@@ -109,6 +123,21 @@ class UpdateClient {
 		PropertyConfigurator.configure("UpdateClient_log4j.properties")
 		log4j = logger.getRootLogger()
 		log4j.setLevel(Level.INFO)
+/*
+		def updateClient = new UpdateClient(log4j)
+		saleStart=plainFormatter.parse("2015-05-30 01:18:00")
+		stepLength=60
+		def now = new Date()
+		def numSteps = updateClient.getStepFromDate(now)
+		def searchDate = updateClient.getDateFromStep(numSteps)
+		def parsed = updateClient.plainFormatter.format(searchDate)
+		println ("now ${now}")
+		println ("numSteps ${numSteps}")
+		println ("parsed ${parsed}")
+
+		return
+
+*/
 
 		def updateClient = new UpdateClient(log4j)
 		
@@ -121,7 +150,7 @@ class UpdateClient {
 		// TODO verify which amounts are satoshi and standardize!!!
 		// {"BTCInAddress":"1JCnJLqGmj8TY8A1HKtCxckQFWGFM5aHX2","BTCAmout":500000,"ZOOZAddress":"18MqJzJp7M7Hfqdv7F9PYxD7vLM3sSXDEF","ZOOZAmount":16660002666,"Time":"2015-05-27T08:49:49+0000"}
 
-		updateClient.sendUpdate("1JCnJLqGmj8TY8A1HKtCxckQFWGFM5aHX2",121,"18MqJzJp7M7Hfqdv7F9PYxD7vLM3sSXDEF",1000,"2015-05-27T08:49:49+0000")
+		updateClient.sendUpdate("1DUv21NTqkxagzkh7yLQTRgetKEXXmoQZo",121,"18MqJzJp7M7Hfqdv7F9PYxD7vLM3sSXDEF",1000,"2015-05-27T08:49:49+0000",0.7)
 		sleep(10000)
 	}
 		

@@ -71,7 +71,7 @@ class ApplicationServer {
 	// Starting rate
 	static startRate
 
-	static plainFormatter = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss")
+	static plainFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
 	static databaseName
 
     public static class GetStatus extends ServerResource {
@@ -151,22 +151,34 @@ class ApplicationServer {
 	private constructResult() {
 		def now = new Date()
 		def numSteps = getStepFromDate(now)
+
 		if (numSteps > maxSteps)
 			numSteps = maxSteps
 		if (numSteps < 0)
 			numSteps = 0
 
 		def searchDate = getDateFromStep(numSteps)
+
 		def parsed = plainFormatter.format(searchDate)
+
 
 		def soldPrev = 0
 		def soldCur
 		def curPrice
 		def current_step = 0
+/*
+		db.eachRow("select * from crowdsale") {
+			println("date=${it.dateString}, rate= ${it.rate}")
+			ret = ret + "date=${it.dateString}, rate= ${it.rate} ,jumped=${it.jumped}, steps=${it.steps}\n"
+			current_step = it.steps
+			rate = it.rate
+		}
+*/
 
 		// Select from database to see if it's there
 		def cur = getRecord(parsed)
 		if (cur == null) {
+			println("cur==null")
 			soldCur = 0
 			// if not - create new record and update
 			def priceSteps = 0
@@ -192,7 +204,6 @@ class ApplicationServer {
 			soldCur = cur.sold
 			soldPrev = cur.prevSold
 			current_step = cur.steps
-
 		}
 
 		soldCur = soldCur/satoshi
@@ -387,7 +398,11 @@ class ApplicationServer {
 			db.eachRow("select * from crowdsale") {
 				println("date=${it.dateString}, rate= ${it.rate}")
 				ret = ret + "date=${it.dateString}, rate= ${it.rate} ,jumped=${it.jumped}, steps=${it.steps}\n"
+
 			}
+
+
+
 
 			ret +="Crowd Sale List \n --------------------\n"
 
@@ -395,6 +410,7 @@ class ApplicationServer {
 
 				println("amount=${it.amount}, from= ${it.destination},to= ${it.source},date= ${it.dateString}")
 				ret = ret + "ZOOZ=${it.amount}, address= ${it.destination},to= ${it.source},date= ${plainFormatter.format(it.dateString)}\n"
+
 			}
 
 			ret +="Total ZOOZ till now \n --------------------\n"
