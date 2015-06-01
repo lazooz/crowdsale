@@ -9,9 +9,11 @@ import groovyx.net.http.AsyncHTTPBuilder
  */
 class BitcoinRateAPI {	
 	private httpBuilders = []
-	private fields = []    
-   
+	private fields = []
+	static AverageRate = 0
+
     private getQueryResult(httpAsync) {
+        def WaitCounter  = 0
         def result = httpAsync.request( GET, JSON) { req ->
 		
             response.success = { resp, json ->
@@ -20,6 +22,11 @@ class BitcoinRateAPI {
 
 			response.failure = { resp ->
 				// Check returned status'
+				println("response fail!!!!!")
+				println(resp.getStatus())
+
+
+				//return 1;
 				//assertResp(resp, expStatus);
 			}
 
@@ -27,6 +34,11 @@ class BitcoinRateAPI {
 
         assert result instanceof java.util.concurrent.Future
         while ( ! result.done ) {
+			WaitCounter +=1
+			if (WaitCounter == 10) /* 1 seconds*/ {
+				println(" 1 seconds")
+				return null
+			}
             Thread.sleep(100)
         }
         return result.get()
@@ -56,6 +68,7 @@ class BitcoinRateAPI {
 		for (def i = 0; i < httpBuilders.size(); i++) {
 			def result = getQueryResult(httpBuilders[i])
 			if (result == null) {
+				println("result == null")
 				continue
 			}
 			def fieldList = fields[i]			
@@ -68,9 +81,10 @@ class BitcoinRateAPI {
 			numResults += 1
 			total += result.toFloat()
 		}
-		if (numResults>0)
-		  return total / numResults
-		return 0
+		if (numResults>0) {
+			AverageRate = total / numResults
+		}
+		return AverageRate
 	}
 
     public BitcoinRateAPI() {
