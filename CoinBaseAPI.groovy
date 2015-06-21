@@ -14,7 +14,7 @@ class CoinBaseAPI {
 
 	private String API_KEY = "opiWx00NehnIDhgL"
 	private String API_SECRET = "IUO2ORVPHczXQcI4QAyXHGyLgz0QGdgf"
-	private String CoinBaseUrl = "https://api.coinbase.com/v1/addresses"
+	private String CoinBaseUrl = "https://api.coinbase.com/v1/addresses?limit=100"
 
 
 	/**
@@ -44,9 +44,9 @@ class CoinBaseAPI {
 
 
 
-	private getQueryResult(httpAsync) {
+	private getQueryResult(httpAsync,Uri) {
         def body =null
-		def url = CoinBaseUrl
+		def url = Uri
 		def now = new Date()
 		def nonce = now.time + 1432106396501116
 		//def nonce = System.currentTimeMillis();
@@ -79,25 +79,46 @@ class CoinBaseAPI {
 	}
 	public getCoinBaseAddresses()
 	{
-
+		def Uri = CoinBaseUrl
 		def httpAsync = new AsyncHTTPBuilder(
 				poolSize : 10,
-				uri : CoinBaseUrl,
+				uri : Uri,
 				contentType : JSON ,
 				)
 
-		def result = getQueryResult(httpAsync)
+		def result = getQueryResult(httpAsync,Uri)
 		def Addressess = []
-		if (result == null)
+		if (result == null) {
+			Addressess.push("1DomPnN69cJBiohjsH8GRUXQzjUGKySFQN")
+			Addressess.push("16JQy5LEZayWucxg1RaAqaRp5Y5F2K5SwK")
+
 			return Addressess;
-		//println "Address: ${result["addresses"]}"
-		//println "Address: ${result["addresses"].size()}"
+		}
+		def num_pages = result["num_pages"];
 		for (def i = 0; i < result["addresses"].size(); i++)
 		{
 			def addressentry = result["addresses"][i]["address"]["address"]
 			Addressess.push(addressentry)
 		}
-		//println(Addressess)
+		for (def j=2;j <=num_pages;j++)
+		{
+			Uri ="${CoinBaseUrl}&page=${j}"
+			println (Uri)
+			httpAsync = new AsyncHTTPBuilder(
+					poolSize : 10,
+					uri:Uri,
+					contentType : JSON ,
+			)
+			result = getQueryResult(httpAsync,Uri)
+			if (result == null)
+				return Addressess;
+			for (def i = 0; i < result["addresses"].size(); i++)
+			{
+				def addressentry = result["addresses"][i]["address"]["address"]
+				Addressess.push(addressentry)
+			}
+		}
+        println(Addressess.size())
 		return Addressess
 	}
 
